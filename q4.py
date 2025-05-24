@@ -52,7 +52,6 @@ def plot_atom_distribution(df):
     fig.supxlabel('Atom Position')
     fig.supylabel('Atom Count')
     plt.suptitle('Atom Distribution Over Time')
-    plt.show()
     return deltas
     
 
@@ -71,8 +70,10 @@ def main():
     deltas = plot_atom_distribution(df)
     lingres = stats.linregress(np.arange(len(deltas))*1e-6, deltas)
     print(f"Linear regression results: slope={lingres.slope:.2e}, intercept={lingres.intercept:.2e}, r_value={lingres.rvalue:.2e}, p_value={lingres.pvalue:.2e}, std_err={lingres.stderr:.2e}")
-    mass = sp.constants.hbar / (0.07e-6 * lingres.slope)
-    print(f"Mass of the atom: {mass:.2e} kg or {mass * 6.022e26:.2f} amu")
+    mass_max = sp.constants.hbar / (0.07e-6 * (lingres.slope-lingres.stderr))
+    mass_min = sp.constants.hbar / (0.07e-6 * (lingres.slope+lingres.stderr))
+    print(f"Mass range of the atom: {mass_min:.2e} kg to {mass_max:.2e} kg")
+    print(f"Mass range of the atom: {mass_min * 6.022e26:.2f} amu to {mass_max * 6.022e26:.2f} amu")
 
 if __name__ == "__main__":
     main()
