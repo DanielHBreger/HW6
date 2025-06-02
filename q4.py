@@ -8,6 +8,10 @@ from scipy.optimize import curve_fit
 import scienceplots
 from matplotlib.backends.backend_pgf import FigureCanvasPgf
 
+micrometers = 1e-6
+binsize = 0.07
+kg_to_amu = 6.022e26  # Conversion factor from kg to amu
+
 matplotlib.backend_bases.register_backend('pdf', FigureCanvasPgf)
 plt.style.use(['science','grid'])
 plt.rcParams.update(
@@ -26,7 +30,7 @@ def gauss(x: np.ndarray, sigma: float, a: float) -> np.ndarray:
     return (
         a/np.sqrt(np.pi*(sigma**2))
     )*np.exp(
-        -1 * (x**2/(sigma**2))
+        -1 * (x**2/(1*(sigma**2)))
     )
 
 def plot_atom_distribution(df):
@@ -68,12 +72,13 @@ def main():
     # Read the CSV file
     df = read_csv("atom_distributions.csv")
     deltas = plot_atom_distribution(df)
-    lingres = stats.linregress(np.arange(len(deltas))*1e-6, deltas)
+    print(deltas)
+    lingres = stats.linregress(np.arange(len(deltas))*micrometers, deltas)
     print(f"Linear regression results: slope={lingres.slope:.2e}, intercept={lingres.intercept:.2e}, r_value={lingres.rvalue:.2e}, p_value={lingres.pvalue:.2e}, std_err={lingres.stderr:.2e}")
-    mass_max = sp.constants.hbar / (0.07e-6 * (lingres.slope-lingres.stderr))
-    mass_min = sp.constants.hbar / (0.07e-6 * (lingres.slope+lingres.stderr))
+    mass_max = sp.constants.hbar / (binsize * micrometers * (lingres.slope-lingres.stderr))
+    mass_min = sp.constants.hbar / (binsize * micrometers * (lingres.slope+lingres.stderr))
     print(f"Mass range of the atom: {mass_min:.2e} kg to {mass_max:.2e} kg")
-    print(f"Mass range of the atom: {mass_min * 6.022e26:.2f} amu to {mass_max * 6.022e26:.2f} amu")
+    print(f"Mass range of the atom: {mass_min * kg_to_amu:.2f} amu to {mass_max * kg_to_amu:.2f} amu")
 
 if __name__ == "__main__":
     main()
